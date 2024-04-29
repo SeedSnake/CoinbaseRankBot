@@ -27,5 +27,23 @@ async def on_disconnect():
     print("Bot is disconnecting...")
     asyncio.run_coroutine_threadsafe(tracker.shutdown(), bot.loop)
 
+@bot.event
+async def on_guild_join(guild):
+    emoji_paths = {
+        'coinbase': 'assets/coinbase_icon.png',
+        'wallet': 'assets/wallet_icon.png',
+        'binance': 'assets/binance_icon.png',
+        'cryptocom': 'assets/cryptocom_icon.png'
+    }
+
+    for name, path in emoji_paths.items():
+        with open(path, 'rb') as image_file:
+            image = image_file.read()
+        try:
+            await guild.create_custom_emoji(name=name, image=image)
+            print(f"Emoji {name} added to {guild.name}.")
+        except discord.HTTPException as e:
+            print(f"Failed to add emoji {name} to {guild.name}: {str(e)}")
+
 if __name__ == "__main__":
     bot.run(BOT_TOKEN)

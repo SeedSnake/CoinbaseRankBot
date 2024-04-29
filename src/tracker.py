@@ -1,6 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import asyncio
 from discord.ext import commands, tasks
 from utilities import evaluate_sentiment, weighted_average_sentiment_calculation
@@ -42,7 +42,14 @@ class RankTracker:
     
     def fetch_cryptodotcom_rank(self):
         return self.fetch_rank(self.url_cryptodotcom)
-
+    
+    def fetch_all_ranks(self):
+        coinbase_rank = self.fetch_coinbase_rank()
+        wallet_rank = self.fetch_coinbase_wallet_rank()
+        binance_rank = self.fetch_binance_rank()
+        cryptocom_rank = self.fetch_cryptodotcom_rank()
+        return coinbase_rank, wallet_rank, binance_rank, cryptocom_rank
+    
     def save_rank_to_history(self, app_name, rank):
         now = datetime.now(timezone.utc)
         data_path = 'data/app_ranks.json'
@@ -62,6 +69,34 @@ class RankTracker:
                 json.dump(data, file, indent=4)
         except Exception as e:
             print(f"Error while saving rank data: {e}")
+
+    def get_historical_rank(self, app_name, days_back=None, months_back=None):
+        file_path = f'data/{app_name}_rank_history.json'
+        if not os.path.exists(file_path):
+            return "No data file found"
+
+        today = datetime.now()
+        if days_back:
+            target_date = today - timedelta(days=days_back)
+        elif months_back:
+            target_date = today - timedelta(days=30 * months_back)  # approximate month adjustment
+        else:
+            return "Invalid or missing time parameter"
+        
+        year, month, day = target_date.strftime('%Y'), target_date.strftime('%m'), target_date.strftime('%d')
+
+        try:
+            with open(file_path, 'r') as file:
+                data = json.load(file)
+            # Fetch the last recorded rank for the target day
+            day_data = data.get(year, {}).get(month, {}).get(day, [])
+            if day_data:
+                return day_data[-1]['rank']  # return the last rank of the day
+            else:
+                return "No rank data available"
+        except Exception as e:
+            print(f"Error accessing file {file_path}: {e}")
+            return "Error processing the historical data"
 
     async def track_rank(self):
         coinbase_rank = self.fetch_coinbase_rank()
@@ -138,7 +173,7 @@ class RankTracker:
         binance_tracker = AppRankTracker('Binance', 'data/rank_data_binance.json')
         cryptodotcom_tracker = AppRankTracker('Crypto.com', 'data/rank_data_cryptodotcom.json')
 
-        sentiment_text, sentiment_image_filename = evaluate_sentiment(coinbase_tracker, wallet_tracker, binance_tracker, cryptodotcom_tracker)
+        sentiment_text, sentiment_image_filename = evaluate_sentiment()
         average_sentiment_calculation = weighted_average_sentiment_calculation()
 
         try:

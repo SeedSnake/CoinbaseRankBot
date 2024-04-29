@@ -41,3 +41,16 @@ def current_rank_cryptodotcom():
         rank_text = rank_element.get_text(strip=True)
         return ''.join(filter(str.isdigit, rank_text))
     return None
+
+def get_bitcoin_price_usd():
+    """Fetch the current price of Bitcoin in USD from the CoinGecko API."""
+    url = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=USD"
+    try:
+        response = requests.get(url)
+        response.raise_for_status()  # This will raise an HTTPError if the HTTP request returned an unsuccessful status code
+        data = response.json()
+        bitcoin_price = data['bitcoin']['usd']
+        return bitcoin_price
+    except requests.RequestException as e:
+        print(f"Failed to fetch Bitcoin price: {e}")
+        return None

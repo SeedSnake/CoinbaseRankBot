@@ -5,9 +5,10 @@ import os
 from datetime import datetime
 
 # Import your necessary modules here
-from api.apps import current_rank_coinbase, current_rank_wallet, current_rank_binance, current_rank_cryptodotcom
+from api.apps import current_rank_coinbase, current_rank_wallet, current_rank_binance, current_rank_cryptodotcom, get_bitcoin_price_usd
 from utilities import number_to_emoji, evaluate_sentiment, weighted_average_sentiment_calculation
 from data_management.database import AppRankTracker
+from tracker import RankTracker
 
 # Create tracker instances
 coinbase_tracker = AppRankTracker('Coinbase', 'data/rank_data_coinbase.json')
@@ -59,7 +60,7 @@ async def coinbase(ctx):
     current_datetime_hour = now.strftime('%Y-%m-%d at %H:%M:%S')
 
     # Assume wallet_tracker is also defined
-    sentiment_text, sentiment_image_filename = evaluate_sentiment(coinbase_tracker, wallet_tracker, binance_tracker, cryptodotcom_tracker)
+    sentiment_text, sentiment_image_filename = evaluate_sentiment()
     change_symbol = coinbase_tracker.compare_ranks(rank_number_coinbase)
     highest_rank, lowest_rank = coinbase_tracker.get_extreme_ranks()
 
@@ -99,7 +100,7 @@ async def cwallet(ctx):
     current_datetime_hour = now.strftime('%Y-%m-%d at %H:%M:%S')
 
     # Assume wallet_tracker is also defined
-    sentiment_text, sentiment_image_filename = evaluate_sentiment(coinbase_tracker, wallet_tracker, binance_tracker, cryptodotcom_tracker)
+    sentiment_text, sentiment_image_filename = evaluate_sentiment()
     change_symbol = wallet_tracker.compare_ranks(rank_number_wallet)
     highest_rank, lowest_rank = wallet_tracker.get_extreme_ranks()
 
@@ -139,7 +140,7 @@ async def binance(ctx):
     current_datetime_hour = now.strftime('%Y-%m-%d at %H:%M:%S')
 
     # Assume binance_tracker is also defined
-    sentiment_text, sentiment_image_filename = evaluate_sentiment(coinbase_tracker, wallet_tracker, binance_tracker, cryptodotcom_tracker)
+    sentiment_text, sentiment_image_filename = evaluate_sentiment()
     change_symbol = binance_tracker.compare_ranks(rank_number_binance)
     highest_rank, lowest_rank = binance_tracker.get_extreme_ranks()
 
@@ -179,7 +180,7 @@ async def cryptocom(ctx):
     current_datetime_hour = now.strftime('%Y-%m-%d at %H:%M:%S')
 
     # Assume cryptodotcom_tracker is also defined
-    sentiment_text, sentiment_image_filename = evaluate_sentiment(coinbase_tracker, wallet_tracker, binance_tracker, cryptodotcom_tracker)
+    sentiment_text, sentiment_image_filename = evaluate_sentiment()
     change_symbol = cryptodotcom_tracker.compare_ranks(rank_number_cryptodotcom)
     highest_rank, lowest_rank = cryptodotcom_tracker.get_extreme_ranks()
 
@@ -368,6 +369,56 @@ async def rmall(ctx):
         await ctx.send("🚨 Failed to remove alerts due to an error.")
         print(f"Error when trying to remove all alerts: {e}")
 
+@bot.command(name='ranks')
+async def ranks(ctx):
+    rank_tracker = RankTracker(ctx.bot)  # Assuming you create a new instance or pass an existing one
+    bitcoin_price = get_bitcoin_price_usd()  # Get the current price of Bitcoin
+    bitcoin_emoji_id = "1234500592559194164"  # Replace with the actual ID of your Bitcoin emoji
+    bitcoin_emoji = f"<:bitcoin:{bitcoin_emoji_id}>"
+    bitcoin_price_text = f"``Current Bitcoin Price: 💲{bitcoin_price:,.2f} USD``" if bitcoin_price != "Unavailable" else f"{bitcoin_emoji} Bitcoin Price: Unavailable"
+
+    embed = discord.Embed(title="Crypto App Ranks", description="Current and historical ranks of major crypto apps.", color=0x00ff00)
+    embed.add_field(name=f"{bitcoin_emoji} Bitcoin Price", value=bitcoin_price_text, inline=False)  # Add Bitcoin price at the top
+    apps = ["coinbase", "wallet", "binance", "cryptocom"]
+    emoji_ids = {
+        "coinbase": "<:coinbase_icon:1234492789967032330>",  # Replace with actual emoji ID
+        "wallet": "<:wallet_icon:1234492792320036925>",
+        "binance": "<:binance_icon:1234492788616331295>",
+        "cryptocom": "<:cryptocom_icon:1234492791355080874>"
+    }
+
+    # Fetch all ranks once to reduce repetitive calls
+    current_ranks = rank_tracker.fetch_all_ranks()
+
+    for idx, app in enumerate(apps):
+        current_rank = current_ranks[idx]
+        yesterday_rank = rank_tracker.get_historical_rank(app, days_back=1)
+        last_week_rank = rank_tracker.get_historical_rank(app, days_back=7)
+        last_month_rank = rank_tracker.get_historical_rank(app, months_back=1)
+
+        # Calculate the difference and set the appropriate arrow
+        if current_rank is not None and yesterday_rank is not None:
+            if current_rank < yesterday_rank:
+                change_icon = "🔼+"  # Arrow up
+                change = yesterday_rank - current_rank
+            elif current_rank > yesterday_rank:
+                change_icon = "🔻-"  # Arrow down
+                change = current_rank - yesterday_rank
+            else:
+                change_icon = ""  # No change
+                change = ""
+            change_text = f"{change_icon}{change}" if change_icon else "No change"
+        else:
+            change_text = "Data unavailable"
+
+        embed.add_field(
+            name=f"{emoji_ids[app]} {app.capitalize()} Rank",
+            value=f"``Current: #️⃣{number_to_emoji(current_rank)} ({change_text}) | Yesterday: #️⃣{number_to_emoji(yesterday_rank)} | Last Week: #️⃣{number_to_emoji(last_week_rank)} | Last Month: #️⃣{number_to_emoji(last_month_rank)}``",
+            inline=False
+        )
+
+    await ctx.send(embed=embed)
+
 def setup_commands(bot):
     bot.add_command(coinbase)
     bot.add_command(binance)
@@ -377,3 +428,4 @@ def setup_commands(bot):
     bot.add_command(rmalert)
     bot.add_command(myalerts)
     bot.add_command(rmall)
+    bot.add_command(ranks)
