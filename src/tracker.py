@@ -223,8 +223,8 @@ class RankTracker:
 
 
     def setup_schedule(self):
-        schedule.every().hour.do(self.track_rank)
-        schedule.every().hour.do(self.check_alerts)
+        schedule.every(1).minutes.do(self.track_rank)
+        schedule.every(1).minutes.do(self.check_alerts)
 
     async def run(self):
         while True:
