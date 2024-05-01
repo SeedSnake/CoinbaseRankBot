@@ -4,9 +4,5 @@ src/__pycache__/tracker.cpython-310.pyc
 src/__pycache__/utilities.cpython-310.pyc
 src/api/__pycache__/apps.cpython-310.pyc
 src/data_management/__pycache__/database.cpython-310.pyc
-data/alerts.json
-data/app_ranks.json
-data/rank_data_binance.json
-data/rank_data_coinbase.json
-data/rank_data_cryptodotcom.json
-data/rank_data_wallet.json
+data/
+assets/
