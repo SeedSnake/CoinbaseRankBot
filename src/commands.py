@@ -71,12 +71,12 @@ async def coinbase(ctx):
     embed.set_thumbnail(url="attachment://coinbase_logo.png")
 
     # Add fields before Market Sentiment
-    embed.add_field(name="🏆 Current Rank", value=f"``#️⃣{number_to_emoji(rank_number_coinbase)} in Finance on {current_datetime_hour}``", inline=False)
+    embed.add_field(name="🏆 Current Rank", value=f"#️⃣{number_to_emoji(rank_number_coinbase)} ``in Finance on {current_datetime_hour}``", inline=False)
     embed.add_field(name="🔂 Recent Positional Change", value=change_symbol, inline=False)
     if highest_rank:
-        embed.add_field(name="📈 Peak Rank Achieved (ATH)", value=f"``#️⃣{number_to_emoji(highest_rank['rank'])} on {highest_rank['timestamp']}``", inline=True)
+        embed.add_field(name="📈 Peak Rank Achieved (ATH)", value=f"#️⃣{number_to_emoji(highest_rank['rank'])} ``on {highest_rank['timestamp']}``", inline=True)
     if lowest_rank:
-        embed.add_field(name="📉 Recent Lowest Rank (ATL)", value=f"``#️⃣{number_to_emoji(lowest_rank['rank'])} on {lowest_rank['timestamp']}``", inline=True)
+        embed.add_field(name="📉 Recent Lowest Rank (ATL)", value=f"#️⃣{number_to_emoji(lowest_rank['rank'])} ``on {lowest_rank['timestamp']}``", inline=True)
 
     # Market Sentiment field and image below it
     embed.add_field(name="🚥 Market Sentiment", value=f"Score: ``{average_sentiment_calculation}``\nFeeling: ``{sentiment_text}``\n", inline=False)
@@ -111,12 +111,12 @@ async def cwallet(ctx):
     embed.set_thumbnail(url="attachment://coinbase_wallet_logo.png")
 
     # Add fields before Market Sentiment
-    embed.add_field(name="🏆 Current Rank", value=f"``#️⃣{number_to_emoji(rank_number_wallet)} in Finance on {current_datetime_hour}``", inline=False)
+    embed.add_field(name="🏆 Current Rank", value=f"#️⃣{number_to_emoji(rank_number_wallet)} ``in Finance on {current_datetime_hour}``", inline=False)
     embed.add_field(name="🔂 Recent Positional Change", value=change_symbol, inline=False)
     if highest_rank:
-        embed.add_field(name="📈 Peak Rank Achieved (ATH)", value=f"``#️⃣{number_to_emoji(highest_rank['rank'])} on {highest_rank['timestamp']}``", inline=True)
+        embed.add_field(name="📈 Peak Rank Achieved (ATH)", value=f"#️⃣{number_to_emoji(highest_rank['rank'])} ``on {highest_rank['timestamp']}``", inline=True)
     if lowest_rank:
-        embed.add_field(name="📉 Recent Lowest Rank (ATL)", value=f"``#️⃣{number_to_emoji(lowest_rank['rank'])} on {lowest_rank['timestamp']}``", inline=True)
+        embed.add_field(name="📉 Recent Lowest Rank (ATL)", value=f"#️⃣{number_to_emoji(lowest_rank['rank'])} ``on {lowest_rank['timestamp']}``", inline=True)
 
     # Market Sentiment field and image below it
     embed.add_field(name="🚥 Market Sentiment", value=f"Score: ``{average_sentiment_calculation}``\nFeeling: ``{sentiment_text}``\n", inline=False)
@@ -151,12 +151,12 @@ async def binance(ctx):
     embed.set_thumbnail(url="attachment://binance_logo.png")
 
     # Add fields before Market Sentiment
-    embed.add_field(name="🏆 Current Rank", value=f"``#️⃣{number_to_emoji(rank_number_binance)} in Finance on {current_datetime_hour}``", inline=False)
+    embed.add_field(name="🏆 Current Rank", value=f"#️⃣{number_to_emoji(rank_number_binance)} ``in Finance on {current_datetime_hour}``", inline=False)
     embed.add_field(name="🔂 Recent Positional Change", value=change_symbol, inline=False)
     if highest_rank:
-        embed.add_field(name="📈 Peak Rank Achieved (ATH)", value=f"``#️⃣{number_to_emoji(highest_rank['rank'])} on {highest_rank['timestamp']}``", inline=True)
+        embed.add_field(name="📈 Peak Rank Achieved (ATH)", value=f"#️⃣{number_to_emoji(highest_rank['rank'])} ``on {highest_rank['timestamp']}``", inline=True)
     if lowest_rank:
-        embed.add_field(name="📉 Recent Lowest Rank (ATL)", value=f"``#️⃣{number_to_emoji(lowest_rank['rank'])} on {lowest_rank['timestamp']}``", inline=True)
+        embed.add_field(name="📉 Recent Lowest Rank (ATL)", value=f"#️⃣{number_to_emoji(lowest_rank['rank'])} ``on {lowest_rank['timestamp']}``", inline=True)
 
     # Market Sentiment field and image below it
     embed.add_field(name="🚥 Market Sentiment", value=f"Score: ``{average_sentiment_calculation}``\nFeeling: ``{sentiment_text}``\n", inline=False)
@@ -191,12 +191,12 @@ async def cryptocom(ctx):
     embed.set_thumbnail(url="attachment://cryptodotcom_logo.png")
 
     # Add fields before Market Sentiment
-    embed.add_field(name="🏆 Current Rank", value=f"``#️⃣{number_to_emoji(rank_number_cryptodotcom)} in Finance on {current_datetime_hour}``", inline=False)
+    embed.add_field(name="🏆 Current Rank", value=f"#️⃣{number_to_emoji(rank_number_cryptodotcom)} ``in Finance on {current_datetime_hour}``", inline=False)
     embed.add_field(name="🔂 Recent Positional Change", value=change_symbol, inline=False)
     if highest_rank:
-        embed.add_field(name="📈 Peak Rank Achieved (ATH)", value=f"``#️⃣{number_to_emoji(highest_rank['rank'])} on {highest_rank['timestamp']}``", inline=True)
+        embed.add_field(name="📈 Peak Rank Achieved (ATH)", value=f"#️⃣{number_to_emoji(highest_rank['rank'])} ``on {highest_rank['timestamp']}``", inline=True)
     if lowest_rank:
-        embed.add_field(name="📉 Recent Lowest Rank (ATL)", value=f"``#️⃣{number_to_emoji(lowest_rank['rank'])} on {lowest_rank['timestamp']}``", inline=True)
+        embed.add_field(name="📉 Recent Lowest Rank (ATL)", value=f"#️⃣{number_to_emoji(lowest_rank['rank'])} ``on {lowest_rank['timestamp']}``", inline=True)
 
     # Market Sentiment field and image below it
     embed.add_field(name="🚥 Market Sentiment", value=f"Score: ``{average_sentiment_calculation}``\nFeeling: ``{sentiment_text}``\n", inline=False)
@@ -371,14 +371,14 @@ async def rmall(ctx):
 
 @bot.command(name='ranks')
 async def ranks(ctx):
-    rank_tracker = RankTracker(ctx.bot)  # Assuming you create a new instance or pass an existing one
-    bitcoin_price = get_bitcoin_price_usd()  # Get the current price of Bitcoin
-    bitcoin_emoji_id = "1234500592559194164"  # Replace with the actual ID of your Bitcoin emoji
+    rank_tracker = RankTracker(ctx.bot)
+    bitcoin_price = get_bitcoin_price_usd()
+    bitcoin_emoji_id = "1234500592559194164"
     bitcoin_emoji = f"<:bitcoin:{bitcoin_emoji_id}>"
     bitcoin_price_text = f"``Current Bitcoin Price: 💲{bitcoin_price:,.2f} USD``" if bitcoin_price != "Unavailable" else f"{bitcoin_emoji} Bitcoin Price: Unavailable"
 
     embed = discord.Embed(title="Crypto App Ranks", description="Current and historical ranks of major crypto apps.", color=0x00ff00)
-    embed.add_field(name=f"{bitcoin_emoji} Bitcoin Price", value=bitcoin_price_text, inline=False)  # Add Bitcoin price at the top
+    embed.add_field(name=f"{bitcoin_emoji} Bitcoin Price", value=bitcoin_price_text, inline=False)
     apps = ["coinbase", "wallet", "binance", "cryptocom"]
     emoji_ids = {
         "coinbase": "<:coinbase_icon:1234492789967032330>",  # Replace with actual emoji ID
@@ -391,29 +391,31 @@ async def ranks(ctx):
     current_ranks = rank_tracker.fetch_all_ranks()
 
     for idx, app in enumerate(apps):
-        current_rank = current_ranks[idx]
         yesterday_rank = rank_tracker.get_historical_rank(app, days_back=1)
         last_week_rank = rank_tracker.get_historical_rank(app, days_back=7)
         last_month_rank = rank_tracker.get_historical_rank(app, months_back=1)
 
-        # Calculate the difference and set the appropriate arrow
-        if current_rank is not None and yesterday_rank is not None:
-            if current_rank < yesterday_rank:
-                change_icon = "🔼+"  # Arrow up
-                change = yesterday_rank - current_rank
-            elif current_rank > yesterday_rank:
-                change_icon = "🔻-"  # Arrow down
-                change = current_rank - yesterday_rank
-            else:
-                change_icon = ""  # No change
-                change = ""
-            change_text = f"{change_icon}{change}" if change_icon else "No change"
+        # Convert to int, safely handling strings and None
+        yesterday_rank_int = int(yesterday_rank) if isinstance(yesterday_rank, str) and yesterday_rank.isdigit() else yesterday_rank if isinstance(yesterday_rank, int) else None
+
+        current_rank = current_ranks[idx]
+
+        # Assuming yesterday_rank is an integer if it's not None
+        if yesterday_rank_int is not None and current_rank < yesterday_rank_int:
+            change_icon = "🔼+"  # Arrow up
+            change = yesterday_rank_int - current_rank
+        elif yesterday_rank_int is not None and current_rank > yesterday_rank_int:
+            change_icon = "🔻-"  # Arrow down
+            change = current_rank - yesterday_rank_int
         else:
-            change_text = "Data unavailable"
+            change_icon = ""  # No change
+            change = ""
+
+        change_text = f"{change_icon}{change}" if change_icon else "No change"
 
         embed.add_field(
             name=f"{emoji_ids[app]} {app.capitalize()} Rank",
-            value=f"``Current: #️⃣{number_to_emoji(current_rank)} ({change_text}) | Yesterday: #️⃣{number_to_emoji(yesterday_rank)} | Last Week: #️⃣{number_to_emoji(last_week_rank)} | Last Month: #️⃣{number_to_emoji(last_month_rank)}``",
+            value=f"``Current:`` #️⃣{number_to_emoji(current_rank)} ({change_text}) | ``Yesterday:`` #️⃣{number_to_emoji(yesterday_rank_int)} | ``Last Week:`` #️⃣{number_to_emoji(last_week_rank)} | ``Last Month:`` #️⃣{number_to_emoji(last_month_rank)}",
             inline=False
         )
 
