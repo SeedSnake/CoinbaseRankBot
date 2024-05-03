@@ -6,23 +6,17 @@ import os
 
 from config import BOT_TOKEN
 from tracker import RankTracker
-from commands import coinbase_command  # Ensure this imports your command setup function
+from commands import setup_commands  # Ensure this imports your command setup functions properly
 
-# Define the intents required by the bot
-intents = Intents.default()
-intents.messages = True
-intents.message_content = True
-intents.guilds = True
-
-# Initialize the bot with a tree for slash commands
 class MyBot(commands.Bot):
     def __init__(self):
-        # Initialize the Bot object with an application ID fetched from environment variables
+        intents = Intents.default()
+        intents.messages = True
+        intents.message_content = True
+        intents.guilds = True
         super().__init__(command_prefix='!', intents=intents, application_id=os.getenv('DISCORD_APPLICATION_ID'))
 
     async def setup_hook(self):
-        self.tree.add_command(app_commands.Command(name="coinbase", description="Get the current rank of the Coinbase app", callback=coinbase_command))
-        # Register and sync the commands after bot setup
         await self.tree.sync()
 
     async def start_tracker():
@@ -55,13 +49,12 @@ class MyBot(commands.Bot):
             except discord.HTTPException as e:
                 print(f"Failed to add emoji {name} to {guild.name}: {str(e)}")
 
+bot = MyBot()
+tracker = RankTracker(bot)
+
+async def main():
+    await setup_commands(bot)
+    await bot.start(BOT_TOKEN)
+
 if __name__ == "__main__":
-    bot = MyBot()
-    tracker = RankTracker(bot)
-    bot.run(BOT_TOKEN)
-
-
-@bot.event
-async def on_disconnect():
-    print("Bot is disconnecting...")
-    asyncio.run_coroutine_threadsafe(tracker.shutdown(), bot.loop)
+    asyncio.run(main())
