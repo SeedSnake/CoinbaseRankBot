@@ -333,7 +333,7 @@ async def setup_commands(bot):
                 
                 embed = Embed(title="🚮✅ Alerts Removed", description="All your alerts have been successfully removed.", color=0x00ff00)
                 embed.set_footer(text=f"Requested by {interaction.user.display_name}", icon_url=interaction.user.avatar.url if interaction.user.avatar else None)
-                await interaction.response.send_message(embed=embed)
+                await interaction.response.send_message(embed=embed, ephemeral=True)
             else:
                 embed = Embed(description="🤷‍♂️ No alert file found or no alerts set.", color=0xff0000)
                 embed.set_footer(text=f"Requested by {interaction.user.display_name}", icon_url=interaction.user.avatar.url if interaction.user.avatar else None)
