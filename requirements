@@ -1,4 +1,5 @@
 aiohttp==3.9.5
+aiofiles==23.2.1   
 beautifulsoup4==4.12.3
 discord.py==2.3.2
 python-dotenv==1.0.1
