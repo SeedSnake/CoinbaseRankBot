@@ -1,4 +1,5 @@
 import requests
+import aiohttp
 from data_management.database import AppRankTracker
 from bs4 import BeautifulSoup
 
@@ -42,15 +43,20 @@ def current_rank_cryptodotcom():
         return ''.join(filter(str.isdigit, rank_text))
     return None
 
-def get_bitcoin_price_usd():
-    """Fetch the current price of Bitcoin in USD from the CoinGecko API."""
+async def get_bitcoin_price_usd():
+    """Fetch the current price of Bitcoin in USD from the CoinGecko API asynchronously."""
     url = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=USD"
     try:
-        response = requests.get(url)
-        response.raise_for_status()  # This will raise an HTTPError if the HTTP request returned an unsuccessful status code
-        data = response.json()
-        bitcoin_price = data['bitcoin']['usd']
-        return bitcoin_price
-    except requests.RequestException as e:
+        # Use aiohttp client session to make the HTTP request
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
+                response.raise_for_status()  # This will raise an aiohttp.ClientResponseError if the HTTP request returned an unsuccessful status code
+                data = await response.json()
+                bitcoin_price = data['bitcoin']['usd']
+                return bitcoin_price
+    except aiohttp.ClientResponseError as e:
+        print(f"HTTP request failed: {e}")
+        return "Unavailable"
+    except Exception as e:
         print(f"Failed to fetch Bitcoin price: {e}")
-        return None
+        return "Unavailable"
