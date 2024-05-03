@@ -1,8 +1,8 @@
-from discord.ext import commands
 import discord
 import json
 import os
 from datetime import datetime
+from discord import app_commands, Interaction, File, Embed
 
 # Import your necessary modules here
 from api.apps import current_rank_coinbase, current_rank_wallet, current_rank_binance, current_rank_cryptodotcom, get_bitcoin_price_usd
@@ -15,12 +15,6 @@ coinbase_tracker = AppRankTracker('Coinbase', 'data/rank_data_coinbase.json')
 wallet_tracker = AppRankTracker('Wallet', 'data/rank_data_wallet.json')
 binance_tracker = AppRankTracker('Binance', 'data/rank_data_binance.json')
 cryptodotcom_tracker = AppRankTracker('Crypto.com', 'data/rank_data_cryptodotcom.json')
-
-# Setup a bot instance here if not passed from bot.py
-intents = discord.Intents.default()
-intents.messages = True
-intents.message_content = True
-bot = commands.Bot(command_prefix='!', intents=intents)
 
 # Initialize sentiment calculation
 average_sentiment_calculation = weighted_average_sentiment_calculation()
@@ -53,47 +47,33 @@ async def send_error_message_remove_alert(ctx, additional_info=""):
     embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=avatar_url if avatar_url else discord.Embed.Empty)
     await ctx.send(embed=embed)
 
-@bot.command()
-async def coinbase(ctx):
+async def coinbase_command(interaction: Interaction):
     rank_number_coinbase = current_rank_coinbase()
     now = datetime.now()
     current_datetime_hour = now.strftime('%Y-%m-%d at %H:%M:%S')
 
-    # Assume wallet_tracker is also defined
     sentiment_text, sentiment_image_filename = evaluate_sentiment()
     change_symbol = coinbase_tracker.compare_ranks(rank_number_coinbase)
     highest_rank, lowest_rank = coinbase_tracker.get_extreme_ranks()
 
-    embed = discord.Embed(title="Coinbase Statistics", description="Real-time tracking and analysis of the Coinbase app ranking.", color=0x00ff00)
-
-    # Attach the main thumbnail
-    file_thumb = discord.File("assets\coinbase-coin-seeklogo.png", filename="coinbase_logo.png")
+    embed = Embed(title="Coinbase Statistics", description="Real-time tracking and analysis of the Coinbase app ranking.", color=0x00ff00)
+    file_thumb = File("assets/coinbase-coin-seeklogo.png", filename="coinbase_logo.png")
     embed.set_thumbnail(url="attachment://coinbase_logo.png")
-
-    # Add fields before Market Sentiment
-    embed.add_field(name="🏆 Current Rank", value=f"#️⃣{number_to_emoji(rank_number_coinbase)} ``in Finance on {current_datetime_hour}``", inline=False)
+    embed.add_field(name="🏆 Current Rank", value=f"#️⃣{number_to_emoji(rank_number_coinbase)} in Finance on {current_datetime_hour}", inline=False)
     embed.add_field(name="🔂 Recent Positional Change", value=change_symbol, inline=False)
     if highest_rank:
-        embed.add_field(name="📈 Peak Rank Achieved (ATH)", value=f"#️⃣{number_to_emoji(highest_rank['rank'])} ``on {highest_rank['timestamp']}``", inline=True)
+        embed.add_field(name="📈 Peak Rank Achieved (ATH)", value=f"#️⃣{number_to_emoji(highest_rank['rank'])} on {highest_rank['timestamp']}", inline=True)
     if lowest_rank:
-        embed.add_field(name="📉 Recent Lowest Rank (ATL)", value=f"#️⃣{number_to_emoji(lowest_rank['rank'])} ``on {lowest_rank['timestamp']}``", inline=True)
-
-    # Market Sentiment field and image below it
-    embed.add_field(name="🚥 Market Sentiment", value=f"Score: ``{average_sentiment_calculation}``\nFeeling: ``{sentiment_text}``\n", inline=False)
-
-    # Attach the sentiment image
-    file_sentiment = discord.File(f"assets/{sentiment_image_filename}", filename=sentiment_image_filename)
+        embed.add_field(name="📉 Recent Lowest Rank (ATL)", value=f"#️⃣{number_to_emoji(lowest_rank['rank'])} on {lowest_rank['timestamp']}", inline=True)
+    embed.add_field(name="🚥 Market Sentiment", value=f"Score: {average_sentiment_calculation}\nFeeling: {sentiment_text}", inline=False)
+    file_sentiment = File(f"assets/{sentiment_image_filename}", filename=sentiment_image_filename)
     embed.set_image(url=f"attachment://{sentiment_image_filename}")
-
-    # Footer and sending the message
-    avatar_url = ctx.author.avatar.url if ctx.author.avatar else None
-    embed.set_footer(text=f"Requested by {ctx.author.display_name}, {current_datetime_hour}.", icon_url=avatar_url if avatar_url else discord.Embed.Empty)
+    avatar_url = interaction.user.avatar.url if interaction.user.avatar else None
+    embed.set_footer(text=f"Requested by {interaction.user.display_name}, {current_datetime_hour}.", icon_url=avatar_url if avatar_url else None)
 
     coinbase_tracker.save_rank(rank_number_coinbase)
+    await interaction.response.send_message(files=[file_thumb, file_sentiment], embed=embed)
 
-    await ctx.send(files=[file_thumb, file_sentiment], embed=embed)
-
-@bot.command()
 async def cwallet(ctx):
     rank_number_wallet = current_rank_wallet()  # Ensure you have a function that fetches the current rank for Wallet
     now = datetime.now()
@@ -133,7 +113,6 @@ async def cwallet(ctx):
 
     await ctx.send(files=[file_thumb, file_sentiment], embed=embed)
 
-@bot.command()
 async def binance(ctx):
     rank_number_binance = current_rank_binance()
     now = datetime.now()
@@ -173,7 +152,6 @@ async def binance(ctx):
 
     await ctx.send(files=[file_thumb, file_sentiment], embed=embed)
 
-@bot.command()
 async def cryptocom(ctx):
     rank_number_cryptodotcom = current_rank_cryptodotcom()
     now = datetime.now()
@@ -213,7 +191,6 @@ async def cryptocom(ctx):
 
     await ctx.send(files=[file_thumb, file_sentiment], embed=embed)
 
-@bot.command()
 async def alert(ctx, app_name: str = None, operator: str = None, rank: int = None):
     # Verify if all args are valid
     if app_name is None or operator is None or rank is None:
@@ -266,7 +243,6 @@ async def alert(ctx, app_name: str = None, operator: str = None, rank: int = Non
         print(f"Failed to set or check alerts due to an error: {e}")
         await ctx.send("🚨 Failed to set alert due to an internal error.")
 
-@bot.command(name='rmalert')
 async def rmalert(ctx, app_name: str = None):
     if app_name is None:
         embed = discord.Embed(description="❌ Please specify an app name to remove its alert.", color=discord.Color.red())
@@ -307,7 +283,6 @@ async def rmalert(ctx, app_name: str = None):
         await ctx.send(embed=embed)
         print(f"Error when trying to remove alert: {e}")
 
-@bot.command(name='myalerts')
 async def myalerts(ctx):
     user_id = ctx.author.id
     alert_file_path = 'data/alerts.json'  # Adjust path as necessary
@@ -343,7 +318,6 @@ async def myalerts(ctx):
         await ctx.send(embed=embed)
         print(f"Error retrieving alerts: {e}")
 
-@bot.command(name='rmall')
 async def rmall(ctx):
     user_id = ctx.author.id
     try:
@@ -369,7 +343,6 @@ async def rmall(ctx):
         await ctx.send("🚨 Failed to remove alerts due to an error.")
         print(f"Error when trying to remove all alerts: {e}")
 
-@bot.command(name='ranks')
 async def ranks(ctx):
     rank_tracker = RankTracker(ctx.bot)
     bitcoin_price = get_bitcoin_price_usd()
@@ -422,7 +395,6 @@ async def ranks(ctx):
     await ctx.send(embed=embed)
 
 def setup_commands(bot):
-    bot.add_command(coinbase)
     bot.add_command(binance)
     bot.add_command(cryptocom)
     bot.add_command(cwallet)
