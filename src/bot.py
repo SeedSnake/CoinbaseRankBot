@@ -25,12 +25,17 @@ class MyBot(commands.Bot):
         # Register and sync the commands after bot setup
         await self.tree.sync()
 
+    async def start_tracker():
+        asyncio.new_event_loop().run_until_complete(tracker.run())
+
     async def on_ready(self):
         print(f'Logged in as {self.user.name}')
+        bot.loop.create_task(tracker.run())
         await self.tree.sync()  # Ensure commands are synced globally
 
     async def on_disconnect(self):
         print("Bot is disconnecting...")
+        asyncio.run_coroutine_threadsafe(tracker.shutdown(), bot.loop)
 
     async def on_guild_join(self, guild):
         # Automatically add custom emojis to guilds when the bot joins
@@ -54,3 +59,9 @@ if __name__ == "__main__":
     bot = MyBot()
     tracker = RankTracker(bot)
     bot.run(BOT_TOKEN)
+
+
+@bot.event
+async def on_disconnect():
+    print("Bot is disconnecting...")
+    asyncio.run_coroutine_threadsafe(tracker.shutdown(), bot.loop)
