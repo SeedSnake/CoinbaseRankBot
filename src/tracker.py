@@ -196,36 +196,32 @@ class RankTracker:
 
     async def check_alerts(self):
         logging.info("Starting to check alerts.")
-        print("Checking alerts...")
-
         while True:
             try:
+                # Always re-read the alert conditions on each loop iteration
                 async with aiofiles.open('data/alerts.json', 'r') as f:
                     data = await f.read()
-                    alerts = json.loads(data)
-                # Process alerts
+                    alerts = json.loads(data) if data else []
+
+                current_ranks = {
+                    'coinbase': await self.get_current_rank('coinbase'),
+                    'cwallet': await self.get_current_rank('wallet'),
+                    'binance': await self.get_current_rank('binance'),
+                    'cryptocom': await self.get_current_rank('cryptodotcom')
+                }
+
+                for alert in alerts:
+                    user_id = alert['user_id']
+                    app = alert['app_name']
+                    current_rank = current_ranks.get(app, None)
+                    if current_rank and self.evaluate_condition(current_rank, alert['operator'], alert['rank']):
+                        await self.send_alert(user_id, app, current_rank)
+
+                logging.info("Alert checking completed.")
             except Exception as e:
-                logging.error(f"Failed to read alerts file: {e}")
+                logging.error(f"Failed to check alerts: {e}")
 
-            await asyncio.sleep(10)
-        
-        current_ranks = {
-            'coinbase': await self.get_current_rank('coinbase'),
-            'cwallet': await self.get_current_rank('wallet'),
-            'binance': await self.get_current_rank('binance'),
-            'cryptocom': await self.get_current_rank('cryptodotcom')
-        }
-
-        for alert in alerts:
-            user_id = alert['user_id']
-            app = alert['app_name']
-            current_rank = current_ranks.get(app, None)
-            if current_rank:
-                if self.evaluate_condition(current_rank, alert['operator'], alert['rank']):
-                    await self.send_alert(user_id, app, current_rank)
-
-        print("Alert checking completed.")
-        logging.info("Finished checking alerts.")
+            await asyncio.sleep(10)  # Adjust timing as necessary
 
     async def send_alert(self, user_id, app_name, rank):
         logging.info(f"Preparing to send alert for {app_name} to user {user_id}")
@@ -293,18 +289,18 @@ class RankTracker:
 
     async def run(self):
         while True:
-            logging.info("Running tracker loop.")
             try:
-
-                await self.track_rank()
-                await self.check_alerts()
-                await self.update_bot_status()
-
+                logging.info("Running tracker loop.")
+                await asyncio.gather(
+                    self.track_rank(),
+                    self.check_alerts(),
+                    self.update_bot_status()
+                )
             except Exception as e:
                 logging.error(f"An error occurred in the tracker loop: {e}")
 
-            logging.info("Sleeping for 10 seconds.")  # Adjusted sleep time for example
-            await asyncio.sleep(10)  # Adjust the interval based on actual needs
+            logging.info("Sleeping for 10 seconds.")
+            await asyncio.sleep(10)  # Proper management of sleep to not block other operations
 
 if __name__ == "__main__":
     bot = commands.Bot(command_prefix='!', intents=discord.Intents.default())
