@@ -10,6 +10,9 @@ import json
 import time
 import os
 import schedule
+import logging
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class RankTracker:
     def __init__(self, bot):
@@ -99,6 +102,8 @@ class RankTracker:
             return "Error processing the historical data"
 
     async def track_rank(self):
+        logging.info("Starting to track rank.")
+
         coinbase_rank = self.fetch_coinbase_rank()
         if coinbase_rank is not None:
             print(f"Fetched Coinbase rank: {coinbase_rank}")
@@ -123,9 +128,10 @@ class RankTracker:
         cryptodotcom_rank = self.fetch_cryptodotcom_rank()
         if cryptodotcom_rank is not None:
             print(f"Fetched Crypto.com rank: {cryptodotcom_rank}")
-            self.save_rank_to_history("crypto.com", cryptodotcom_rank)
+            self.save_rank_to_history("cryptodotcom", cryptodotcom_rank)
         else:
             print("Failed to fetch Crypto.com rank.")
+        logging.info("Finished tracking rank.")
 
     def get_current_rank(self, app_name):
         file_path = 'data/app_ranks.json'
@@ -141,7 +147,9 @@ class RankTracker:
         return None
 
     async def check_alerts(self):
+        logging.info("Starting to check alerts.")
         print("Checking alerts...")
+
         try:
             with open('data/alerts.json', 'r') as f:
                 alerts = json.load(f)
@@ -151,9 +159,9 @@ class RankTracker:
         
         current_ranks = {
             'coinbase': self.get_current_rank('coinbase'),
-            'wallet': self.get_current_rank('wallet'),
+            'cwallet': self.get_current_rank('wallet'),
             'binance': self.get_current_rank('binance'),
-            'cryptodotcom': self.get_current_rank('cryptodotcom')
+            'cryptocom': self.get_current_rank('cryptodotcom')
         }
 
         for alert in alerts:
@@ -164,6 +172,7 @@ class RankTracker:
                 await self.send_alert(user_id, app, current_rank)
 
         print("Alert checking completed.")
+        logging.info("Finished checking alerts.")
 
     async def send_alert(self, user_id, app_name, rank):
 
@@ -198,6 +207,8 @@ class RankTracker:
             print(f"Failed to send message to {user_id}: {e}")
 
     async def update_bot_status(self):
+        logging.info("Starting to update bot status.")
+
         app_urls = [
             ("coinbase", self.url_coinbase),
             ("coinbase wallet", self.url_coinbase_wallet),
@@ -221,18 +232,29 @@ class RankTracker:
             # Move to the next app status or loop back to the start
             status_index = (status_index + 1) % len(app_urls)
 
-
-    def setup_schedule(self):
-        schedule.every(1).minutes.do(self.track_rank)
-        schedule.every(1).minutes.do(self.check_alerts)
+            logging.info("Finished updating bot status.")
 
     async def run(self):
         while True:
-            await self.track_rank()
-            await self.check_alerts()
-            await self.update_bot_status()
-            await asyncio.sleep(60)  # wait for x seconds
+            logging.info("Running tracker loop.")
+            try:
+                await self.track_rank()
+            except Exception as e:
+                logging.error(f"Failed to track rank: {e}")
             
+            try:
+                await self.check_alerts()
+            except Exception as e:
+                logging.error(f"Failed to check alerts: {e}")
+            
+            try:
+                await self.update_bot_status()
+            except Exception as e:
+                logging.error(f"Failed to update bot status: {e}")
+            
+            logging.info("Sleeping for 10 seconds.")
+            await asyncio.sleep(10)
+
 if __name__ == "__main__":
     bot = commands.Bot(command_prefix='!', intents=discord.Intents.default())
     tracker = RankTracker(bot)
