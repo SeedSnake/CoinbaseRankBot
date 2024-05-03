@@ -2,8 +2,11 @@ import discord
 import json
 import os
 from datetime import datetime
-from discord import app_commands, Interaction, File, Embed
+from discord import app_commands, Interaction, File, Embed, Colour
 from discord.ext import commands
+import logging
+
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Import your necessary modules here
 from api.apps import current_rank_coinbase, current_rank_wallet, current_rank_binance, current_rank_cryptodotcom, get_bitcoin_price_usd
@@ -170,13 +173,18 @@ async def setup_commands(bot):
         cryptodotcom_tracker.save_rank(rank_number_cryptodotcom)
         await interaction.response.send_message(files=[file_thumb, file_sentiment], embed=embed)
 
-    @bot.tree.command(name="alertme", description="Set an alert for a specific crypto app rank change")
+    @bot.tree.command(name="set_alert", description="Set an alert for a specific crypto app rank change")
     @app_commands.describe(
-        app_name="The name of the application to set the alert for",
         operator="The comparison operator for the alert (e.g., >, <, >=, <=)",
         rank="The rank threshold for the alert"
     )
     @app_commands.choices(
+        app_name=[
+            app_commands.Choice(name="Coinbase", value="coinbase"),
+            app_commands.Choice(name="Coinbase wallet", value="cwallet"),
+            app_commands.Choice(name="Crypto.com", value="cryptocom"),
+            app_commands.Choice(name="Binance", value="binance")
+        ],
         operator=[
             app_commands.Choice(name="greater than", value=">"),
             app_commands.Choice(name="less than", value="<"),
@@ -184,12 +192,7 @@ async def setup_commands(bot):
             app_commands.Choice(name="less than or equal to", value="<=")
         ]
     )
-    async def alertme_command(interaction: Interaction, app_name: str, operator: str, rank: int):
-        # Verify if all args are valid
-        if app_name is None or operator is None or rank is None:
-            await send_error_message_set_alert(interaction)
-            return
-
+    async def set_alert_command(interaction: Interaction, app_name: str, operator: str, rank: int):
         alert_data = {
             'user_id': interaction.user.id,
             'app_name': app_name.lower(),
@@ -236,13 +239,11 @@ async def setup_commands(bot):
     @app_commands.describe(app_name="The name of the application to remove the alert for")
     async def remove_alert_command(interaction: Interaction, app_name: str):
         if app_name is None:
-            embed = Embed(description="❌ Please specify an app name to remove its alert.", color=Embed.Color.red())
-            embed.set_footer(text=f"Requested by {interaction.user.display_name}", icon_url=interaction.user.avatar.url if interaction.user.avatar else None)
-            await interaction.response.send_message(embed=embed, ephemeral=True)
+            await send_error_message_remove_alert(interaction)
             return
 
         user_id = interaction.user.id
-        alert_file_path = 'data/alerts.json'  # Ensure this path is correct in your file structure
+        alert_file_path = 'data/alerts.json'
 
         try:
             with open(alert_file_path, 'r+') as file:
@@ -250,27 +251,24 @@ async def setup_commands(bot):
                 new_alerts = [alert for alert in alerts if not (alert['user_id'] == user_id and alert['app_name'].lower() == app_name.lower())]
 
                 if len(alerts) == len(new_alerts):
-                    embed = Embed(description=f"🙅‍♂️ No alert found for ``{app_name.capitalize()}`` that belongs to you.", color=Embed.Color.red())
+                    embed = Embed(description=f"🙅‍♂️ No alert found for `{app_name.capitalize()}` that belongs to you.", color=Colour.red())
                 else:
                     file.seek(0)
                     json.dump(new_alerts, file, indent=4)
                     file.truncate()
-                    embed = Embed(description=f"🚮 Alert for ``{app_name.capitalize()}`` has been successfully removed.", color=Embed.Color.green())
+                    embed = Embed(description=f"🚮 Alert for `{app_name.capitalize()}` has been successfully removed.", color=Colour.green())
 
                 embed.set_footer(text=f"Requested by {interaction.user.display_name}", icon_url=interaction.user.avatar.url if interaction.user.avatar else None)
                 await interaction.response.send_message(embed=embed, ephemeral=False)
 
         except FileNotFoundError:
-            embed = Embed(description="🚨 Alert data file not found.", color=Embed.Color.red())
-            embed.set_footer(text=f"Requested by {interaction.user.display_name}", icon_url=interaction.user.avatar.url if interaction.user.avatar else None)
+            embed = Embed(description="🚨 Alert data file not found.", color=Colour.red())
             await interaction.response.send_message(embed=embed, ephemeral=True)
         except json.JSONDecodeError:
-            embed = Embed(description="🚨 Error reading the alert data.", color=Embed.Color.red())
-            embed.set_footer(text=f"Requested by {interaction.user.display_name}", icon_url=interaction.user.avatar.url if interaction.user.avatar else None)
+            embed = Embed(description="🚨 Error reading the alert data.", color=Colour.red())
             await interaction.response.send_message(embed=embed, ephemeral=True)
         except Exception as e:
-            embed = Embed(description=f"🚨 Failed to remove the alert due to an error: {e}", color=Embed.Color.red())
-            embed.set_footer(text=f"Requested by {interaction.user.display_name}", icon_url=interaction.user.avatar.url if interaction.user.avatar else None)
+            embed = Embed(description=f"🚨 Failed to remove the alert due to an error: {e}", color=Colour.red())
             await interaction.response.send_message(embed=embed, ephemeral=True)
 
     @bot.tree.command(name="myalerts", description="Display your active alerts")
@@ -281,12 +279,12 @@ async def setup_commands(bot):
         try:
             with open(alert_file_path, 'r') as file:
                 alerts = json.load(file)
-                user_alerts = [alert for alert in alerts if alert['user_id'] == user_id]
+                user_alerts = [alert for alert in alerts if int(alert['user_id']) == user_id]
 
             if not user_alerts:
-                embed = Embed(description="🤷‍♂️ You have no active alerts.", color=Embed.Color.blue())
+                embed = Embed(description="🤷‍♂️ You have no active alerts.", color=Colour.blue())
             else:
-                embed = Embed(title="🔂🔔 Your Active Alerts", description="", color=Embed.Color.green())
+                embed = Embed(title="🔂🔔 Your Active Alerts", description="", color=Colour.green())
                 for alert in user_alerts:
                     embed.add_field(name=f"✅ {alert['app_name'].title()} Alert",
                                     value=f"Trigger: {alert['operator']} {alert['rank']}",
@@ -296,15 +294,15 @@ async def setup_commands(bot):
             await interaction.response.send_message(embed=embed, ephemeral=True)  # Make the message visible only to the user
 
         except FileNotFoundError:
-            embed = Embed(description="🚨 Alert data file not found.", color=Embed.Color.red())
+            embed = Embed(description="🚨 Alert data file not found.", color=Colour.red())
             embed.set_footer(text=f"Requested by {interaction.user.display_name}", icon_url=interaction.user.avatar.url if interaction.user.avatar else None)
             await interaction.response.send_message(embed=embed, ephemeral=True)
         except json.JSONDecodeError:
-            embed = Embed(description="🚨 Error reading the alert data.", color=Embed.Color.red())
+            embed = Embed(description="🚨 Error reading the alert data.", color=Colour.red())
             embed.set_footer(text=f"Requested by {interaction.user.display_name}", icon_url=interaction.user.avatar.url if interaction.user.avatar else None)
             await interaction.response.send_message(embed=embed, ephemeral=True)
         except Exception as e:
-            embed = Embed(description=f"🚨 An error occurred while retrieving your alerts: {e}", color=Embed.Color.red())
+            embed = Embed(description=f"🚨 An error occurred while retrieving your alerts: {e}", color=Colour.red())
             embed.set_footer(text=f"Requested by {interaction.user.display_name}", icon_url=interaction.user.avatar.url if interaction.user.avatar else None)
             await interaction.response.send_message(embed=embed, ephemeral=True)
 
@@ -317,7 +315,16 @@ async def setup_commands(bot):
                 with open('data/alerts.json', 'r') as file:
                     alerts = json.load(file)
                 
-                # Filter out alerts for the user
+                # Filter out alerts for the user to see if there are any
+                user_alerts = [alert for alert in alerts if alert['user_id'] == user_id]
+
+                if not user_alerts:
+                    embed = Embed(description="🤷‍♂️ You have no alerts to remove.", color=0x00ff00)
+                    embed.set_footer(text=f"Requested by {interaction.user.display_name}", icon_url=interaction.user.avatar.url if interaction.user.avatar else None)
+                    await interaction.response.send_message(embed=embed, ephemeral=True)
+                    return
+
+                # Remove all alerts for this user
                 alerts = [alert for alert in alerts if alert['user_id'] != user_id]
 
                 # Write the updated alerts back to the file
@@ -328,14 +335,21 @@ async def setup_commands(bot):
                 embed.set_footer(text=f"Requested by {interaction.user.display_name}", icon_url=interaction.user.avatar.url if interaction.user.avatar else None)
                 await interaction.response.send_message(embed=embed)
             else:
-                await interaction.response.send_message("🤷‍♂️ No alert file found or no alerts set.", ephemeral=True)
+                embed = Embed(description="🤷‍♂️ No alert file found or no alerts set.", color=0xff0000)
+                embed.set_footer(text=f"Requested by {interaction.user.display_name}", icon_url=interaction.user.avatar.url if interaction.user.avatar else None)
+                await interaction.response.send_message(embed=embed, ephemeral=True)
 
+        except json.JSONDecodeError as e:
+            embed = Embed(description=f"🚨 Error reading the alert data: {str(e)}", color=0xff0000)
+            embed.set_footer(text=f"Requested by {interaction.user.display_name}", icon_url=interaction.user.avatar.url if interaction.user.avatar else None)
+            await interaction.response.send_message(embed=embed, ephemeral=True)
         except Exception as e:
-            await interaction.response.send_message(f"🚨 Failed to remove alerts due to an error: {str(e)}", ephemeral=True)
-            print(f"Error when trying to remove all alerts: {e}")
+            embed = Embed(description=f"🚨 Failed to remove alerts due to an error: {str(e)}", color=0xff0000)
+            embed.set_footer(text=f"Requested by {interaction.user.display_name}", icon_url=interaction.user.avatar.url if interaction.user.avatar else None)
+            await interaction.response.send_message(embed=embed, ephemeral=True)
 
-    @bot.tree.command(name="display_all_apps_rank", description="Display ranks of all crypto apps")
-    async def display_all_apps_rank_command(interaction: Interaction):
+    @bot.tree.command(name="all_ranks", description="Display ranks and Data History of all crypto apps at once")
+    async def all_ranks_command(interaction: Interaction):
         rank_tracker = RankTracker(bot)
         bitcoin_price = get_bitcoin_price_usd()
         bitcoin_emoji_id = "1234500592559194164"
