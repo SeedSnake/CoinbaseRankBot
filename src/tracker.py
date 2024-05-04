@@ -226,8 +226,8 @@ class RankTracker:
     async def send_alert(self, user_id, app_name, rank):
         logging.info(f"Preparing to send alert for {app_name} to user {user_id}")
 
-        sentiment_text, sentiment_image_filename = evaluate_sentiment()
-        average_sentiment_calculation = weighted_average_sentiment_calculation()
+        sentiment_text, sentiment_image_filename = await evaluate_sentiment()
+        average_sentiment_calculation = await weighted_average_sentiment_calculation()
 
         try:
             user = await self.bot.fetch_user(user_id)

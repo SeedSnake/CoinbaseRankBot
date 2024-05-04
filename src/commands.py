@@ -20,9 +20,6 @@ wallet_tracker = AppRankTracker('Wallet', 'data/rank_data_wallet.json')
 binance_tracker = AppRankTracker('Binance', 'data/rank_data_binance.json')
 cryptodotcom_tracker = AppRankTracker('Crypto.com', 'data/rank_data_cryptodotcom.json')
 
-# Initialize sentiment calculation
-average_sentiment_calculation = weighted_average_sentiment_calculation()
-
 async def setup_commands(bot):
 
     async def send_error_message_set_alert(interaction: discord.Interaction, additional_info=""):
@@ -59,13 +56,15 @@ async def setup_commands(bot):
 
     @bot.tree.command(name="coinbase", description="Get the current rank of the Coinbase app")
     async def coinbase_command(interaction: Interaction):
-        rank_number_coinbase = current_rank_coinbase()
+        
+        average_sentiment_calculation = await weighted_average_sentiment_calculation()
+        rank_number_coinbase = await current_rank_coinbase()
         now = datetime.now()
         current_datetime_hour = now.strftime('%Y-%m-%d at %H:%M:%S')
 
-        sentiment_text, sentiment_image_filename = evaluate_sentiment()
-        change_symbol = coinbase_tracker.compare_ranks(rank_number_coinbase)
-        highest_rank, lowest_rank = coinbase_tracker.get_extreme_ranks()
+        sentiment_text, sentiment_image_filename = await evaluate_sentiment()
+        change_symbol = await coinbase_tracker.compare_ranks(rank_number_coinbase)
+        highest_rank, lowest_rank = await coinbase_tracker.get_extreme_ranks()
 
         embed = Embed(title="Coinbase Statistics", description="Real-time tracking and analysis of the Coinbase app ranking.", color=0x0052ff)
         file_thumb = File("assets/coinbase-coin-seeklogo.png", filename="coinbase_logo.png")
@@ -82,18 +81,20 @@ async def setup_commands(bot):
         avatar_url = interaction.user.avatar.url if interaction.user.avatar else None
         embed.set_footer(text=f"Requested by {interaction.user.display_name}, {current_datetime_hour}.", icon_url=avatar_url if avatar_url else None)
 
-        coinbase_tracker.save_rank(rank_number_coinbase)
+        await coinbase_tracker.save_rank(rank_number_coinbase)
         await interaction.response.send_message(files=[file_thumb, file_sentiment], embed=embed)
 
     @bot.tree.command(name="cwallet", description="Get the current rank of the Coinbase Wallet app")
     async def cwallet_command(interaction: Interaction):
-        rank_number_wallet = current_rank_wallet()
+
+        average_sentiment_calculation = await weighted_average_sentiment_calculation()
+        rank_number_wallet = await current_rank_wallet()
         now = datetime.now()
         current_datetime_hour = now.strftime('%Y-%m-%d at %H:%M:%S')
 
-        sentiment_text, sentiment_image_filename = evaluate_sentiment()
-        change_symbol = wallet_tracker.compare_ranks(rank_number_wallet)
-        highest_rank, lowest_rank = wallet_tracker.get_extreme_ranks()
+        sentiment_text, sentiment_image_filename = await evaluate_sentiment()
+        change_symbol = await wallet_tracker.compare_ranks(rank_number_wallet)
+        highest_rank, lowest_rank = await wallet_tracker.get_extreme_ranks()
 
         embed = Embed(title="Coinbase's Wallet Statistics", description="Real-time tracking and analysis of the Coinbase's Wallet app ranking.", color=0x0052ff)
         file_thumb = File("assets/coinbase-wallet-seeklogo.png", filename="coinbase_wallet_logo.png")
@@ -106,26 +107,27 @@ async def setup_commands(bot):
         if lowest_rank:
             embed.add_field(name="📉 Recent Lowest Rank (ATL)", value=f"#️⃣{number_to_emoji(lowest_rank['rank'])} on {lowest_rank['timestamp']}", inline=True)
 
-        embed.add_field(name="🚥 Market Sentiment", value=f"Score: {weighted_average_sentiment_calculation()}\nFeeling: {sentiment_text}", inline=False)
+        embed.add_field(name="🚥 Market Sentiment", value=f"Score: {average_sentiment_calculation}\nFeeling: {sentiment_text}", inline=False)
         file_sentiment = File(f"assets/{sentiment_image_filename}", filename=sentiment_image_filename)
         embed.set_image(url=f"attachment://{sentiment_image_filename}")
 
         avatar_url = interaction.user.avatar.url if interaction.user.avatar else None
         embed.set_footer(text=f"Requested by {interaction.user.display_name}, {current_datetime_hour}.", icon_url=avatar_url if avatar_url else None)
 
-        wallet_tracker.save_rank(rank_number_wallet)
-
+        await wallet_tracker.save_rank(rank_number_wallet)
         await interaction.response.send_message(files=[file_thumb, file_sentiment], embed=embed)
 
     @bot.tree.command(name="binance", description="Get the current rank of the Binance app")
     async def binance_command(interaction: Interaction):
-        rank_number_binance = current_rank_binance()
+
+        average_sentiment_calculation = await weighted_average_sentiment_calculation()
+        rank_number_binance = await current_rank_binance()
         now = datetime.now()
         current_datetime_hour = now.strftime('%Y-%m-%d at %H:%M:%S')
 
-        sentiment_text, sentiment_image_filename = evaluate_sentiment()
-        change_symbol = binance_tracker.compare_ranks(rank_number_binance)
-        highest_rank, lowest_rank = binance_tracker.get_extreme_ranks()
+        sentiment_text, sentiment_image_filename = await evaluate_sentiment()
+        change_symbol = await binance_tracker.compare_ranks(rank_number_binance)
+        highest_rank, lowest_rank = await binance_tracker.get_extreme_ranks()
 
         embed = Embed(title="Binance Statistics", description="Real-time tracking and analysis of the Binance app ranking.", color=0xf3ba2f)
         file_thumb = File("assets/binance-smart-chain-bsc-seeklogo.png", filename="binance_logo.png")
@@ -142,18 +144,20 @@ async def setup_commands(bot):
         avatar_url = interaction.user.avatar.url if interaction.user.avatar else None
         embed.set_footer(text=f"Requested by {interaction.user.display_name}, {current_datetime_hour}.", icon_url=avatar_url if avatar_url else None)
 
-        binance_tracker.save_rank(rank_number_binance)
+        await binance_tracker.save_rank(rank_number_binance)
         await interaction.response.send_message(files=[file_thumb, file_sentiment], embed=embed)
 
     @bot.tree.command(name="cryptocom", description="Get the current rank of the Crypto.com app")
     async def cryptocom_command(interaction: Interaction):
-        rank_number_cryptodotcom = current_rank_cryptodotcom()
+
+        average_sentiment_calculation = await weighted_average_sentiment_calculation()
+        rank_number_cryptodotcom = await current_rank_cryptodotcom()
         now = datetime.now()
         current_datetime_hour = now.strftime('%Y-%m-%d at %H:%M:%S')
 
-        sentiment_text, sentiment_image_filename = evaluate_sentiment()
-        change_symbol = cryptodotcom_tracker.compare_ranks(rank_number_cryptodotcom)
-        highest_rank, lowest_rank = cryptodotcom_tracker.get_extreme_ranks()
+        sentiment_text, sentiment_image_filename = await evaluate_sentiment()
+        change_symbol = await cryptodotcom_tracker.compare_ranks(rank_number_cryptodotcom)
+        highest_rank, lowest_rank = await cryptodotcom_tracker.get_extreme_ranks()
 
         embed = Embed(title="Crypto.com Statistics", description="Real-time tracking and analysis of the Crypto.com app ranking.", color=0x1c64b0)
         file_thumb = File("assets/crypto-com-seeklogo.png", filename="cryptodotcom_logo.png")
@@ -170,7 +174,7 @@ async def setup_commands(bot):
         avatar_url = interaction.user.avatar.url if interaction.user.avatar else None
         embed.set_footer(text=f"Requested by {interaction.user.display_name}, {current_datetime_hour}.", icon_url=avatar_url if avatar_url else None)
 
-        cryptodotcom_tracker.save_rank(rank_number_cryptodotcom)
+        await cryptodotcom_tracker.save_rank(rank_number_cryptodotcom)
         await interaction.response.send_message(files=[file_thumb, file_sentiment], embed=embed)
 
     @bot.tree.command(name="set_alert", description="Set an alert for a specific crypto app rank change")
@@ -350,9 +354,8 @@ async def setup_commands(bot):
 
     @bot.tree.command(name="all_ranks", description="Display ranks and Data History of all crypto apps at once")
     async def all_ranks_command(interaction: Interaction):
-        rank_tracker = RankTracker(bot)  # Assuming RankTracker is properly defined
+        rank_tracker = RankTracker(bot)
 
-        # Assuming get_bitcoin_price_usd is an async function
         bitcoin_price = await get_bitcoin_price_usd()  
         bitcoin_emoji_id = "1234500592559194164"
         bitcoin_emoji = f"<:bitcoin:{bitcoin_emoji_id}>"
@@ -363,7 +366,7 @@ async def setup_commands(bot):
 
         apps = ["coinbase", "wallet", "binance", "cryptocom"]
         emoji_ids = {
-            "coinbase": "<:coinbase_icon:1234492789967032330>",  # Replace with actual emoji ID
+            "coinbase": "<:coinbase_icon:1234492789967032330>",
             "wallet": "<:wallet_icon:1234492792320036925>",
             "binance": "<:binance_icon:1234492788616331295>",
             "cryptocom": "<:cryptocom_icon:1234492791355080874>"
@@ -393,13 +396,13 @@ async def setup_commands(bot):
                 else:
                     change_icon = ""  # No change
                     change = ""
-                change_text = f"{change_icon}{change}" if change_icon else "No change"
+                change_text = f"{change_icon}{change}" if change_icon else "💤 No change"
             else:
                 change_text = "Data unavailable"
 
             embed.add_field(
                 name=f"{emoji_ids[app]} {app.capitalize()} Rank",
-                value=f"``Current: #{number_to_emoji(current_rank)} ({change_text}) | Yesterday: #{number_to_emoji(yesterday_rank)} | Last Week: #{number_to_emoji(last_week_rank)} | Last Month: #{number_to_emoji(last_month_rank)}``",
+                value=f"``Current: #️⃣{number_to_emoji(current_rank)} ({change_text}) | Yesterday: #️⃣{number_to_emoji(yesterday_rank)} | Last Week: #️⃣{number_to_emoji(last_week_rank)} | Last Month: #️⃣{number_to_emoji(last_month_rank)}``",
                 inline=False
             )
 

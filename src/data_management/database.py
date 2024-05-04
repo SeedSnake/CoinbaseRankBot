@@ -1,18 +1,20 @@
 import json
 from datetime import datetime
+import aiofiles
 
 class AppRankTracker:
     def __init__(self, app_name, file_path):
         self.app_name = app_name
         self.file_path = file_path
 
-    def save_rank(self, rank_number):
+    async def save_rank(self, rank_number):
         now = datetime.now()
         current_datetime = now.strftime('%Y-%m-%d %H:%M:%S')
-        
+
         try:
-            with open(self.file_path, 'r') as f:
-                data = json.load(f)
+            async with aiofiles.open(self.file_path, 'r') as f:
+                data = await f.read()
+                data = json.loads(data)
             last_saved_rank = data.get('last_rank')
         except (FileNotFoundError, json.JSONDecodeError):
             data = {
@@ -34,45 +36,47 @@ class AppRankTracker:
             if data['lowest_rank']['rank'] is None or rank_number > data['lowest_rank']['rank']:
                 data['lowest_rank'] = {'rank': rank_number, 'timestamp': current_datetime}
 
-            with open(self.file_path, 'w') as f:
-                json.dump(data, f, indent=4)
+            async with aiofiles.open(self.file_path, 'w') as f:
+                await f.write(json.dumps(data, indent=4))
             print("Rank data updated.")
         else:
             print("No need to update rank data; rank unchanged.")
 
-    def get_extreme_ranks(self):
+    async def get_extreme_ranks(self):
         try:
-            with open(self.file_path, 'r') as f:
-                data = json.load(f)
+            async with aiofiles.open(self.file_path, 'r') as f:
+                data = await f.read()
+                data = json.loads(data)
             highest_rank = data.get('highest_rank', {})
             lowest_rank = data.get('lowest_rank', {})
             return highest_rank, lowest_rank
         except (FileNotFoundError, json.JSONDecodeError):
             return None, None
 
-    def get_date_from_json(self):
+    async def get_date_from_json(self):
         try:
-            with open(self.file_path, 'r') as f:
-                data = json.load(f)
+            async with aiofiles.open(self.file_path, 'r') as f:
+                data = await f.read()
+                data = json.loads(data)
             date_value = data.get('date', 'No date found')
             return date_value
         except (FileNotFoundError, json.JSONDecodeError) as e:
             print(f"Error reading the JSON file: {e}")
             return 'No date found'
 
-    def get_previous_rank(self):
+    async def get_previous_rank(self):
         try:
-            with open(self.file_path, 'r') as f:
-                data = json.load(f)
+            async with aiofiles.open(self.file_path, 'r') as f:
+                data = await f.read()
+                data = json.loads(data)
             last_rank = data.get('last_rank', None)
             last_date = data.get('date', None)
             return last_rank, last_date
         except (FileNotFoundError, json.JSONDecodeError):
             return None, None
 
-    def compare_ranks(self, current_rank):
-        
-        previous_rank, last_date = self.get_previous_rank()
+    async def compare_ranks(self, current_rank):
+        previous_rank, last_date = await self.get_previous_rank()
         
         if previous_rank is None:
             return "Rank data not available for comparison."

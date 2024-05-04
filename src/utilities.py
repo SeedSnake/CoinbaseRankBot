@@ -18,12 +18,12 @@ def number_to_emoji(number):
         print(f"An error occurred: {e}")
         return None
 
-def evaluate_sentiment():
-    # Fetch the current ranks
-    coinbase_current_rank = current_rank_coinbase()
-    wallet_current_rank = current_rank_wallet()
-    binance_current_rank = current_rank_binance()
-    cryptodotcom_current_rank = current_rank_cryptodotcom()
+async def evaluate_sentiment():
+    # Fetch the current ranks asynchronously
+    coinbase_current_rank = await current_rank_coinbase()
+    wallet_current_rank = await current_rank_wallet()
+    binance_current_rank = await current_rank_binance()
+    cryptodotcom_current_rank = await current_rank_cryptodotcom()
 
     # Check if either rank is None
     if None in (coinbase_current_rank, wallet_current_rank, binance_current_rank, cryptodotcom_current_rank):
@@ -41,7 +41,7 @@ def evaluate_sentiment():
         weighted_average_rank = 100 - (5 * (coinbase_current_rank + cryptodotcom_current_rank) + 2.5 * binance_current_rank + wallet_current_rank) / 13.5
         
         # Evaluate sentiment based on the weighted average
-        sentiment, image_file = evaluate_based_on_weighted_average(weighted_average_rank)
+        sentiment, image_file = await evaluate_based_on_weighted_average(weighted_average_rank)
 
         return sentiment, image_file
 
@@ -53,7 +53,7 @@ def evaluate_sentiment():
         print(f"Error converting rank values to integers: {e}")
         return "Error processing rank values.", None
 
-def evaluate_based_on_weighted_average(weighted_average_rank):
+async def evaluate_based_on_weighted_average(weighted_average_rank):
     if weighted_average_rank >= 90:
         sentiment = "🟢🟢🟢 Extreme Greed!"
     elif weighted_average_rank >= 80:
@@ -82,15 +82,12 @@ def evaluate_based_on_weighted_average(weighted_average_rank):
     image_file = sentiment_images.get(sentiment)
     return sentiment, image_file
 
-def weighted_average_sentiment_calculation():
+async def weighted_average_sentiment_calculation():
+    rank_number_coinbase = int(await current_rank_coinbase())
+    rank_number_binance = int(await current_rank_binance())
+    rank_number_wallet = int(await current_rank_wallet())
+    rank_number_cryptodotcom = int(await current_rank_cryptodotcom())
 
-    rank_number_coinbase = int(current_rank_coinbase())
-    rank_number_binance = int(current_rank_binance())
-    rank_number_wallet = int(current_rank_wallet())
-    rank_number_cryptocom = int(current_rank_cryptodotcom())
-
-    weighted_average_rank = (5 * (rank_number_coinbase + rank_number_cryptocom) + 2.5 * rank_number_binance + rank_number_wallet) / 13.5
+    weighted_average_rank = (5 * (rank_number_coinbase + rank_number_cryptodotcom) + 2.5 * rank_number_binance + rank_number_wallet) / 13.5
 
     return 100 - round(weighted_average_rank)
-
-print(weighted_average_sentiment_calculation())
