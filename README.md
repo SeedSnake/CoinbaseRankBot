@@ -31,9 +31,9 @@ You can monitor these trends and set alerts for ranking changes, ensuring you ar
 
 ## Installation
 
-Click on the invitation below :
+Click on the invitation below (The bot will be up soon! 🔜👀):
 
-<a href="https://discord.com/oauth2/authorize?client_id=1217919790593872015"><img src="https://img.shields.io/badge/Discord-Invitation-7289DA?style=for-the-badge&logo=discord&logoColor=white" alt="Discord - Invitation"></a>
+<a href=""><img src="https://img.shields.io/badge/Discord-Invitation-7289DA?style=for-the-badge&logo=discord&logoColor=white" alt="Discord - Invitation"></a>
 
 ## Usage
 
